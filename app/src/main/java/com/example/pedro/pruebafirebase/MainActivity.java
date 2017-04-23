@@ -60,9 +60,6 @@ public class MainActivity extends AppCompatActivity {
 
 //INI ahora hago una lista
         lista = new ArrayList<String>(); //hago la lista con los datos
-        lista.add("pepe");
-        lista.add("juan");
-
 
         //hago el adapter con la lista anterior
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, lista);
@@ -76,20 +73,39 @@ public class MainActivity extends AppCompatActivity {
 
                 //INI eliminamos el elemento seleccionado
 
-                    String elementoSeleccionado = (String) listaListView.getItemAtPosition(position);
+                    final String elementoSeleccionado = (String) listaListView.getItemAtPosition(position);
                     Query myQuery = myRef.orderByValue();
 
-                    //Toast.makeText(getApplication(), "elementoSeleccionado:" + elementoSeleccionado, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplication(), "elementoSeleccionado:" + elementoSeleccionado, Toast.LENGTH_SHORT).show();
                     myQuery.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 
+                            if (dataSnapshot != null){
+                                if (dataSnapshot.hasChildren()) {
+                                    //TODO tengo que iterar para encontrar el que coincide con el seleccionado para borrarlo
 
-                            if (dataSnapshot.hasChildren()) {
+                                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                                        if (snapshot != null) {
+                                            Toast.makeText(getApplication(), "iterado:" + snapshot.child("full_name").getValue().toString(), Toast.LENGTH_SHORT).show();
 
+                                            if (snapshot.child("full_name").getValue().toString().equals(elementoSeleccionado)) {
+                                                Toast.makeText(getApplication(), "son iguales " + snapshot.child("full_name").getValue().toString() + " y " + elementoSeleccionado, Toast.LENGTH_SHORT).show();
+                                                snapshot.getRef().removeValue(); //DA EXCEPCION
+
+                                            }
+                                        }
+                                    }
+                                }
+/*codigo anterior
                                 DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
                                 Toast.makeText(getApplication(), "iterado:" + firstChild.getValue().toString(), Toast.LENGTH_SHORT).show();
-                                firstChild.getRef().removeValue();
+
+                                if (elementoSeleccionado.contentEquals(firstChild.getValue().toString())) {
+                                    Toast.makeText(getApplication(), "coincide:" + firstChild.getValue().toString(), Toast.LENGTH_SHORT).show();
+                                }
+                                //firstChild.getRef().removeValue();
+                                */
                             }
                         }
 
