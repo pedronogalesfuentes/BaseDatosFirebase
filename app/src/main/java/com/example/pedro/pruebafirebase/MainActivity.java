@@ -70,8 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         listaListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id){
-
-                //INI eliminamos el elemento seleccionado
+                 //INI eliminamos el elemento seleccionado
 
                     final String elementoSeleccionado = (String) listaListView.getItemAtPosition(position);
                     Query myQuery = myRef.orderByValue();
@@ -81,31 +80,17 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 
-                            if (dataSnapshot != null){
-                                if (dataSnapshot.hasChildren()) {
-                                    //TODO tengo que iterar para encontrar el que coincide con el seleccionado para borrarlo
-
-                                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                        if (snapshot != null) {
-                                            Toast.makeText(getApplication(), "iterado:" + snapshot.child("full_name").getValue().toString(), Toast.LENGTH_SHORT).show();
-
-                                            if (snapshot.child("full_name").getValue().toString().equals(elementoSeleccionado)) {
-                                                Toast.makeText(getApplication(), "son iguales " + snapshot.child("full_name").getValue().toString() + " y " + elementoSeleccionado, Toast.LENGTH_SHORT).show();
-                                                snapshot.getRef().removeValue(); //DA EXCEPCION
-
+                            if (dataSnapshot.exists()) {
+                                for (DataSnapshot child : dataSnapshot.getChildren()) {
+                                    if (child.child("full_name").exists()) {
+                                            String fullName = child.child("full_name").getValue().toString();
+                                            Log.d("kk", fullName);
+                                            if(fullName.equals(elementoSeleccionado)){
+                                               Toast.makeText(getApplication(), "son iguales:" + elementoSeleccionado+ " y "+ fullName, Toast.LENGTH_SHORT).show();
+                                               child.getRef().removeValue();
                                             }
-                                        }
                                     }
                                 }
-/*codigo anterior
-                                DataSnapshot firstChild = dataSnapshot.getChildren().iterator().next();
-                                Toast.makeText(getApplication(), "iterado:" + firstChild.getValue().toString(), Toast.LENGTH_SHORT).show();
-
-                                if (elementoSeleccionado.contentEquals(firstChild.getValue().toString())) {
-                                    Toast.makeText(getApplication(), "coincide:" + firstChild.getValue().toString(), Toast.LENGTH_SHORT).show();
-                                }
-                                //firstChild.getRef().removeValue();
-                                */
                             }
                         }
 
@@ -173,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
 
             // This function is called each time a child item is removed.
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                String value = dataSnapshot.getValue(String.class);
+                String value = dataSnapshot.child("full_name").getValue().toString();
                 Toast.makeText(getApplication(), "onChildRemoved:" + value, Toast.LENGTH_SHORT).show();
                 adapter.remove(value);
             }
