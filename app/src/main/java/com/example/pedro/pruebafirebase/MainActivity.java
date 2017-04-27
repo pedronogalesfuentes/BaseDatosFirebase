@@ -79,14 +79,17 @@ public class MainActivity extends AppCompatActivity {
                     myQuery.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
+                            //nos pasan un dataSnapshot que es una copia de la BBDD desde el DatabaseReference myRef (en este caso todo lo que cuelga de hijo)
+                            String nombreCampo = "full_name"; //nombre del campo en la estructura JSON en el que vamos a buscar para borrar
+                            String valorCampo = elementoSeleccionado; //valor que deber tener el campo "nombreCampo" que borremos
 
-                            if (dataSnapshot.exists()) {
-                                for (DataSnapshot child : dataSnapshot.getChildren()) {
-                                    if (child.child("full_name").exists()) {
-                                            String fullName = child.child("full_name").getValue().toString();
-                                            Log.d("kk", fullName);
-                                            if(fullName.equals(elementoSeleccionado)){
-                                               Toast.makeText(getApplication(), "son iguales:" + elementoSeleccionado+ " y "+ fullName, Toast.LENGTH_SHORT).show();
+                            if (dataSnapshot.exists()) { //si el snapShot que nos han pasado existe...
+                                for (DataSnapshot child : dataSnapshot.getChildren()) { //para cada hijo que cuelga (en nuestro caso cada ramita que cuelga de "hijo")
+                                    if (child.child(nombreCampo).exists()) {
+                                            String campo = child.child(nombreCampo).getValue().toString(); //valor del campo "nombreCampo" en nuestra ramita
+                                            Log.d("kk", campo);
+                                            if(campo.equals(valorCampo)){
+                                               Toast.makeText(getApplication(), "son iguales:" + valorCampo+ " y "+ campo, Toast.LENGTH_SHORT).show();
                                                child.getRef().removeValue();
                                             }
                                     }
@@ -244,6 +247,10 @@ public class MainActivity extends AppCompatActivity {
         // Set the child's data to the value passed in from the text box.
         childRef.setValue(usuario);
         //FIN PROBAMOS A GUARDAR UN OBJETO
+    }
+
+    public void borrarUsuarioEnFirebase(DataSnapshot dataSnapshot, User usuario){
+
     }
 }
 
