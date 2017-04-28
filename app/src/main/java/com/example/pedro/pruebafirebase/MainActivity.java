@@ -32,12 +32,8 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    //INI Create Firebase database object by using the following code:
-    // Connect to the Firebase database
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
-    // Get a reference to the todoItems child items it the database
-    final DatabaseReference myRef = database.getReference("hijo");
-//FIN Create Firebase database object by using the following code
+    DispositivoFirebase dispositivoFirebase = new DispositivoFirebase();
+    final DatabaseReference myRef = dispositivoFirebase.getMyRef();
 
     //INI: lista de variables necesarias para crear la lista
     private List<String> lista; //objeto de tipo lista que tiene la lista de nombres
@@ -48,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
-    //private ArrayAdapter arrayAdapter; //objeto de tipo ArrayAdapter necesario para enganchar el array al ListView
     //FIN: lista de variables necesarias para crear la lista
 
 
@@ -73,39 +68,14 @@ public class MainActivity extends AppCompatActivity {
                  //INI eliminamos el elemento seleccionado
 
                     final String elementoSeleccionado = (String) listaListView.getItemAtPosition(position);
-                    Query myQuery = myRef.orderByValue();
-
                     Toast.makeText(getApplication(), "elementoSeleccionado:" + elementoSeleccionado, Toast.LENGTH_SHORT).show();
-                    myQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            //nos pasan un dataSnapshot que es una copia de la BBDD desde el DatabaseReference myRef (en este caso todo lo que cuelga de hijo)
-                            String nombreCampo = "full_name"; //nombre del campo en la estructura JSON en el que vamos a buscar para borrar
-                            String valorCampo = elementoSeleccionado; //valor que deber tener el campo "nombreCampo" que borremos
+                    dispositivoFirebase.BorraDispositivo(elementoSeleccionado);
+                    adapter.remove(elementoSeleccionado); //lo elimino de la lista
 
-                            if (dataSnapshot.exists()) { //si el snapShot que nos han pasado existe...
-                                for (DataSnapshot child : dataSnapshot.getChildren()) { //para cada hijo que cuelga (en nuestro caso cada ramita que cuelga de "hijo")
-                                    if (child.child(nombreCampo).exists()) {
-                                            String campo = child.child(nombreCampo).getValue().toString(); //valor del campo "nombreCampo" en nuestra ramita
-                                            Log.d("kk", campo);
-                                            if(campo.equals(valorCampo)){
-                                               Toast.makeText(getApplication(), "son iguales:" + valorCampo+ " y "+ campo, Toast.LENGTH_SHORT).show();
-                                               child.getRef().removeValue();
-                                            }
-                                    }
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                        }
-                    });
                 //FIN eliminamos el elemento seleccionado
             }
         });
 
- //FIN
 
 
 
@@ -123,82 +93,15 @@ public class MainActivity extends AppCompatActivity {
                 //Get the text from Edit text
                 String texto = (String) editText.getText().toString();
                 String texto2 = (String) editText2.getText().toString();
-                //adapter.add(texto);
-
-                //INI set it on Firebase
-                //myRef.setValue(texto);
-/* ESTO FUNCIONA BIEN, LO HE QUITADO PARA PROBAR A GUARDAR UN OBJETO
-                // Create a new child with a auto-generated ID.
-                DatabaseReference childRef = myRef.push();
-
-                // Set the child's data to the value passed in from the text box.
-                childRef.setValue(texto);
-                //FIN set it on Firebase
-*/
+                Log.d("button","añado "+ texto);
 
                 //INI  GUARDAR UN OBJETO
-                   guardaUsuarioEnFirebase(new User(texto, texto2));
+                    dispositivoFirebase.GuardaDispositivo(new Dispositivo(texto,texto2,texto));
+                    adapter.add(texto);//lo incluyo en la lista
                 // GUARDAR UN OBJETO
             }
         });
 
-        //INI
-
-        // Assign a listener to detect changes to the child items
-        // of the database reference.
-        myRef.addChildEventListener(new ChildEventListener() {
-
-            // This function is called once for each child that exists
-            // when the listener is added. Then it is called
-            // each time a new child is added.
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-                User usuario = dataSnapshot.getValue(User.class);
-                String nombre = usuario.getFull_name();
-                Toast.makeText(getApplication(), "onChildAdded:" + nombre, Toast.LENGTH_SHORT).show();
-                adapter.add(nombre);
-            }
-
-            // This function is called each time a child item is removed.
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                String value = dataSnapshot.child("full_name").getValue().toString();
-                Toast.makeText(getApplication(), "onChildRemoved:" + value, Toast.LENGTH_SHORT).show();
-                adapter.remove(value);
-            }
-
-            // The following functions are also required in ChildEventListener implementations.
-            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-            }
-
-            public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w("TAG:", "Failed to read value.", error.toException());
-            }
-        });
-        //FIN
-/*
-//INI In order to listen to changes to Firebase.
-        //http://kodesnippets.com/index.php/2016/05/29/getting-started-with-firebase-in-android/
-        //defino para la BBDD myRef un ValueEventListener
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            //defino su metodo onDataChange que se invocará cada vez que los datos son actualizados o modificados
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                String value = dataSnapshot.getValue(String.class);
-                Toast.makeText(getApplication(), "Value Changed To:" + value, Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
-//FIN  In order to listen to changes to Firebase.
-
-*/
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -241,16 +144,5 @@ public class MainActivity extends AppCompatActivity {
         client.disconnect();
     }
 
-    public void guardaUsuarioEnFirebase(User usuario){
-        // Create a new child with a auto-generated ID.
-        DatabaseReference childRef = myRef.push();
-        // Set the child's data to the value passed in from the text box.
-        childRef.setValue(usuario);
-        //FIN PROBAMOS A GUARDAR UN OBJETO
-    }
-
-    public void borrarUsuarioEnFirebase(DataSnapshot dataSnapshot, User usuario){
-
-    }
 }
 
