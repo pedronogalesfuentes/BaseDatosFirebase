@@ -32,8 +32,8 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    DispositivoFirebase dispositivoFirebase = new DispositivoFirebase();
-    final DatabaseReference myRef = dispositivoFirebase.getMyRef();
+    DispositivoFirebase dispositivoFirebase = new DispositivoFirebase(); //objeto con el que hare todas las operaciones sobre Firebase
+
 
     //INI: lista de variables necesarias para crear la lista
     private List<String> lista; //objeto de tipo lista que tiene la lista de nombres
