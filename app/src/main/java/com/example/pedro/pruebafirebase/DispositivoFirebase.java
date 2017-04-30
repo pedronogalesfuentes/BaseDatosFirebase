@@ -11,6 +11,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+
+
 /**
  * Created by pedro on 28/04/2017.
  */
@@ -19,6 +21,8 @@ public class DispositivoFirebase {
 
     FirebaseDatabase database;
     DatabaseReference myRef;
+
+    private Dispositivo dispositivoBuscado; //para recoger el dispositivo encontrado en BuscarDispositivo
 
     public DispositivoFirebase() {
 
@@ -116,6 +120,8 @@ Returns
 A Query with the new constraint
                  */
         Query myQuery = myRef.orderByValue();
+        //Query myQuery = myRef.equalTo(idABorrar);
+        Log.d("myQuery", myQuery.toString());
            /*
            public void addListenerForSingleValueEvent (ValueEventListener listener)
 Add a listener for a single change in the data at this location. This listener will be triggered once with the value of the data at the location.
@@ -153,6 +159,58 @@ listener	The listener to be called with the data
             }
         });
         return true;
+    }
+
+    public Dispositivo BuscaDispositivo(final String idABuscar) {
+
+                        /*
+                The Query class (and its subclass, DatabaseReference) are used for reading data. Listeners are attached, and they will be triggered when the corresponding data changes.
+ public Query orderByValue ()
+Create a query in which nodes are ordered by their value
+Returns
+A Query with the new constraint
+                 */
+        Query myQuery = myRef.orderByValue();
+        //Query myQuery = myRef.equalTo(idABorrar);
+        Log.d("myQuery", myQuery.toString());
+           /*
+           public void addListenerForSingleValueEvent (ValueEventListener listener)
+Add a listener for a single change in the data at this location. This listener will be triggered once with the value of the data at the location.
+Parameters
+listener	The listener to be called with the data
+            */
+        myQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+                        /*
+                        public abstract void onDataChange (DataSnapshot snapshot)
+                        This method will be called with a snapshot of the data at this location. It will also be called each time that data changes.
+                        Parameters
+                        snapshot	The current data at the location
+                         */
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                //nos pasan un dataSnapshot que es una copia de la BBDD desde el DatabaseReference myRef (en este caso todo lo que cuelga de hijo)
+                if (dataSnapshot.exists()) { //si el snapShot que nos han pasado existe...
+                    for (DataSnapshot child : dataSnapshot.getChildren()) { //para cada hijo que cuelga (en nuestro caso cada ramita que cuelga de "hijo")
+                        if (child.child("id").exists()) {
+                            String id = child.child("id").getValue().toString(); //valor del campo "id" en nuestra ramita
+                            //Log.d("kk", id);
+                            if (id.equals(idABuscar)) { //si el id del elemento coincide con el que tengo que buscar
+                                dispositivoBuscado = new Dispositivo();
+                                dispositivoBuscado.setId(id);
+                                dispositivoBuscado.setImei(child.child("imei").getValue().toString());
+                                dispositivoBuscado.setModelo(child.child("modelo").getValue().toString());
+                                Log.d("Buscar dispositivo", dispositivoBuscado.getId());
+                            }
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+        return dispositivoBuscado;
 
     }
 }

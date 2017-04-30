@@ -69,6 +69,10 @@ public class MainActivity extends AppCompatActivity {
 
                     final String elementoSeleccionado = (String) listaListView.getItemAtPosition(position);
                     Toast.makeText(getApplication(), "elementoSeleccionado:" + elementoSeleccionado, Toast.LENGTH_SHORT).show();
+                    Dispositivo dispositivo = dispositivoFirebase.BuscaDispositivo(elementoSeleccionado);
+                    if (dispositivo != null) {
+                        Toast.makeText(getApplication(), "he encontrado:" + dispositivo.getId(), Toast.LENGTH_SHORT).show();
+                    }
                     dispositivoFirebase.BorraDispositivo(elementoSeleccionado);
                     adapter.remove(elementoSeleccionado); //lo elimino de la lista
 
